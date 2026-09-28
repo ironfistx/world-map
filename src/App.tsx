@@ -49,7 +49,8 @@ export default function App() {
     pins.forEach(pin => {
       if (markerIds.current.has(pin.id)) return
       markerIds.current.add(pin.id)
-      window.L.circleMarker([pin.latitude, pin.longitude], { radius: 7, color: '#ffb45e', weight: 2, fillColor: '#ffb45e', fillOpacity: .92 }).addTo(map).bindPopup(`<strong>${escapeHtml(pin.name || 'Anonymous')}</strong><br>${escapeHtml(pin.city)}, ${escapeHtml(pin.country)}`)
+      const icon = window.L.divIcon({ className: 'map-pin-icon', html: '<span class="map-pin"><i></i></span>', iconSize: [24, 32], iconAnchor: [12, 32], popupAnchor: [0, -30] })
+      window.L.marker([pin.latitude, pin.longitude], { icon }).addTo(map).bindPopup(`<strong>${escapeHtml(pin.name || 'Anonymous')}</strong><br>${escapeHtml(pin.city)}, ${escapeHtml(pin.country)}`)
     })
   }, [pins])
 
