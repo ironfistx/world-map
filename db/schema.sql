@@ -3,6 +3,7 @@ create table if not exists public.pins (
   name text,
   city text not null,
   country text not null,
+  emoji text default '📍',
   latitude double precision not null,
   longitude double precision not null,
   created_at timestamptz default now()
