@@ -25,7 +25,7 @@ export default function App() {
   useEffect(() => {
     if (!mapElement.current || !window.L) return
     const map = window.L.map(mapElement.current, { worldCopyJump: false, zoomSnap: 0.25, minZoom: 1, maxZoom: 10 }).setView([15, 0], 1.75)
-    window.L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap contributors &copy; CARTO', maxZoom: 19 }).addTo(map)
+    window.L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri', maxZoom: 16 }).addTo(map)
     mapRef.current = map
     return () => map.remove()
   }, [])
