@@ -1,5 +1,5 @@
 .map-viewport {
-  background-color: #0d2639;
+  background-color: #4b7187;
   background-image: url('https://upload.wikimedia.org/wikipedia/commons/9/9f/BlankMap-World-Equirectangular.svg'), radial-gradient(ellipse at 55% 48%, rgba(26, 82, 107, .24), transparent 58%);
   background-size: 96% 90%, auto;
   background-position: center, center;
@@ -14,7 +14,7 @@
   position: absolute;
   inset: 5% 2%;
   pointer-events: none;
-  background: radial-gradient(ellipse at center, transparent 45%, rgba(7, 17, 31, .3) 100%);
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(7, 17, 31, .08) 100%);
 }
 
 .map-viewport .marker-layer,
