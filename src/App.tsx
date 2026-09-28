@@ -28,7 +28,7 @@ export default function App() {
     if (!mapElement.current || !window.L) return
     const map = window.L.map(mapElement.current, { worldCopyJump: false, zoomSnap: 0.25, minZoom: 1, maxZoom: 10 })
     const countries = feature(world as any, (world as any).objects.countries)
-    const countryLayer = window.L.geoJSON(countries, { style: { color: '#e7cfd2', weight: 0.75, opacity: 0.9, fillColor: '#fffaf3', fillOpacity: 1 } }).addTo(map)
+    const countryLayer = window.L.geoJSON(countries, { style: { color: 'transparent', weight: 0, opacity: 0, fillColor: '#fffaf3', fillOpacity: 1 } }).addTo(map)
     map.fitBounds(countryLayer.getBounds(), { padding: [8, 8] })
     const regions: Array<[string, number, number]> = [
       ['EUROPE', 50, 15], ['ASIA', 42, 90], ['NORTH<br>AMERICA', 42, -105],
