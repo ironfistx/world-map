@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, Globe2, MapPin, Search, X } from 'lucide-react'
-import { feature } from 'topojson-client'
-import world from 'world-atlas/countries-50m.json'
 import type { GeocodedPlace, Pin } from './types'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined
 const configured = Boolean(SUPABASE_URL && SUPABASE_KEY)
 const displayMode = new URLSearchParams(window.location.search).get('display') === 'true'
 
@@ -25,19 +24,17 @@ export default function App() {
   const [hasSubmitted, setHasSubmitted] = useState(() => localStorage.getItem('world-map-submitted') === 'true')
 
   useEffect(() => {
-    if (!mapElement.current || !window.L) return
-    const map = window.L.map(mapElement.current, { worldCopyJump: false, zoomSnap: 0.25, minZoom: 1, maxZoom: 10 })
-    const countries = feature(world as any, (world as any).objects.countries)
-    const countryLayer = window.L.geoJSON(countries, { style: { color: 'transparent', weight: 0, opacity: 0, fillColor: '#fffaf3', fillOpacity: 1 } }).addTo(map)
-    map.fitBounds(countryLayer.getBounds(), { padding: [8, 8] })
-    const regions: Array<[string, number, number]> = [
-      ['EUROPE', 50, 15], ['ASIA', 42, 90], ['NORTH<br>AMERICA', 42, -105],
-      ['AFRICA', 10, 20], ['SOUTH<br>AMERICA', -18, -60], ['OCEANIA', -25, 140], ['ANTARCTICA', -76, 0],
-    ]
-    regions.forEach(([label, latitude, longitude]) => window.L.marker([latitude, longitude], {
-      icon: window.L.divIcon({ className: 'continent-label-icon', html: `<span>${label}</span>`, iconSize: [120, 36], iconAnchor: [60, 18] }),
-      interactive: false,
-    }).addTo(map))
+    if (!mapElement.current || !window.mapboxgl || !MAPBOX_TOKEN) return
+    const map = new window.mapboxgl.Map({
+      accessToken: MAPBOX_TOKEN,
+      container: mapElement.current,
+      style: 'mapbox://styles/mapbox/standard',
+      center: [0, 18],
+      zoom: 0.7,
+      projection: 'globe',
+      attributionControl: false,
+    })
+    map.on('style.load', () => map.setFog({ color: 'rgb(186, 210, 235)', 'high-color': 'rgb(36, 92, 120)', 'horizon-blend': 0.08, 'space-color': 'rgb(7, 17, 31)', 'star-intensity': 0.18 }))
     mapRef.current = map
     return () => map.remove()
   }, [])
@@ -57,12 +54,17 @@ export default function App() {
 
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !window.L) return
+    if (!map || !window.mapboxgl) return
     pins.forEach(pin => {
       if (markerIds.current.has(pin.id)) return
       markerIds.current.add(pin.id)
-      const icon = window.L.divIcon({ className: 'map-pin-icon', html: '<span class="map-pin"><i></i></span>', iconSize: [24, 32], iconAnchor: [12, 32], popupAnchor: [0, -30] })
-      window.L.marker([pin.latitude, pin.longitude], { icon }).addTo(map).bindPopup(`<strong>${escapeHtml(pin.name || 'Anonymous')}</strong><br>${escapeHtml(pin.city)}, ${escapeHtml(pin.country)}`)
+      const element = document.createElement('div')
+      element.className = 'map-pin-icon'
+      element.innerHTML = '<span class="map-pin"><i></i></span>'
+      new window.mapboxgl.Marker({ element, anchor: 'bottom' })
+        .setLngLat([pin.longitude, pin.latitude])
+        .setPopup(new window.mapboxgl.Popup({ offset: 28 }).setHTML(`<strong>${escapeHtml(pin.name || 'Anonymous')}</strong><br>${escapeHtml(pin.city)}, ${escapeHtml(pin.country)}`))
+        .addTo(map)
     })
   }, [pins])
 
@@ -78,7 +80,7 @@ export default function App() {
     return () => window.clearTimeout(timer)
   }, [query, selected])
 
-  function choose(place: GeocodedPlace) { setSelected(place); setQuery(`${place.name}, ${place.country}`); setPlaces([]); setOpen(false); mapRef.current?.setView([place.latitude, place.longitude], 5) }
+  function choose(place: GeocodedPlace) { setSelected(place); setQuery(`${place.name}, ${place.country}`); setPlaces([]); setOpen(false); mapRef.current?.flyTo({ center: [place.longitude, place.latitude], zoom: 3.8, essential: true }) }
 
   async function submit() {
     if (!selected || submitting || hasSubmitted) return
@@ -96,7 +98,7 @@ export default function App() {
   return <main className="app-shell">
     <header className="topbar"><div className="brand"><span className="brand-mark"><Globe2 size={20} /></span><span>WHERE ARE WE?</span></div><div className="topbar-note"><span className="live-dot" /> LIVE AROUND THE WORLD</div></header>
     <section className="intro"><div><p className="eyebrow"><Globe2 size={14} /> A MAP OF US</p><h1>Where are we from?</h1><p className="intro-copy">Add your hometown and see where we all come together.</p></div><div className="stats"><div><strong>{pins.length.toLocaleString()}</strong><span>PEOPLE ON THE MAP</span></div><div><strong>{new Set(pins.map(pin => pin.country)).size}</strong><span>COUNTRIES / REGIONS</span></div></div></section>
-    <section className="workspace"><div className="map-card"><div className="map-toolbar"><span><span className="legend-dot" /> EVERY LIGHT IS A PERSON</span></div><div ref={mapElement} className="leaflet-map" aria-label="Interactive world map" /><div className="map-footer"><span>ZOOM AND DRAG TO EXPLORE</span><span>PINS SHOW APPROXIMATE HOMETOWNS</span></div></div>
+    <section className="workspace"><div className="map-card"><div className="map-toolbar"><span><span className="legend-dot" /> EVERY LIGHT IS A PERSON</span></div><div ref={mapElement} className="mapbox-map" aria-label="Interactive 3D world globe" /><div className="map-footer"><span>DRAG TO ROTATE · SCROLL TO ZOOM</span><span>PINS SHOW APPROXIMATE HOMETOWNS</span></div></div>
       {!displayMode && <aside className="action-card"><div className="card-heading"><span className="step-badge">01</span><div><h2>Mark your city</h2><p>Add your hometown to the map.</p></div></div>{hasSubmitted ? <div className="already-submitted"><Check size={20} /> You're already on the map 🌏</div> : <><label className="field-label" htmlFor="name">Name or nickname <span>optional</span></label><input id="name" className="name-input" value={name} onChange={event => setName(event.target.value)} placeholder="Your name or nickname" maxLength={80} /><label className="field-label" htmlFor="city">Hometown</label><div className="search-wrap"><Search size={18} /><input id="city" value={query} onChange={event => { setQuery(event.target.value); setSelected(null) }} onFocus={() => setOpen(true)} placeholder="Search for a city…" autoComplete="off" />{query && <button className="clear-button" onClick={() => { setQuery(''); setSelected(null) }} aria-label="Clear search"><X size={16} /></button>}{open && query && !selected && <div className="suggestions">{searching ? <div className="no-results">Searching…</div> : places.length ? places.map(place => <button key={`${place.id}-${place.latitude}`} onClick={() => choose(place)}><MapPin size={16} /><span><b>{place.name}</b><small>{place.admin1 ? `${place.admin1}, ` : ''}{place.country}</small></span></button>) : <div className="no-results">Type at least three letters to search.</div>}</div>}</div>{selected && <div className="selected-city"><div className="selected-icon"><MapPin size={19} /></div><div><strong>{selected.name}</strong><span>{selected.country}</span></div><Check size={18} className="selected-check" /></div>}<button className="submit-button" disabled={!selected || submitting} onClick={submit}>{submitting ? 'Adding…' : 'Add me to the map'}<span>→</span></button></>}<p className="privacy-note">Only your name, city and country are stored. Pins are approximate.</p>{message && <div className="toast">{message}</div>}</aside>}
     </section><footer className="footer"><span>A MAP FOR EVERYONE</span><span>{pins.length} {pins.length === 1 ? 'PERSON' : 'PEOPLE'} CONNECTED</span></footer>
   </main>
