@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, Globe2, MapPin, Search, X } from 'lucide-react'
+import { feature } from 'topojson-client'
+import world from 'world-atlas/countries-110m.json'
 import type { GeocodedPlace, Pin } from './types'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
@@ -25,7 +27,16 @@ export default function App() {
   useEffect(() => {
     if (!mapElement.current || !window.L) return
     const map = window.L.map(mapElement.current, { worldCopyJump: false, zoomSnap: 0.25, minZoom: 1, maxZoom: 10 }).setView([15, 0], 1.75)
-    window.L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri', maxZoom: 16 }).addTo(map)
+    const countries = feature(world as any, (world as any).objects.countries)
+    window.L.geoJSON(countries, { style: { color: '#e7cfd2', weight: 0.75, opacity: 0.9, fillColor: '#fffaf3', fillOpacity: 1 } }).addTo(map)
+    const regions = [
+      ['EUROPE', 50, 15], ['ASIA', 42, 90], ['NORTH<br>AMERICA', 42, -105],
+      ['AFRICA', 10, 20], ['SOUTH<br>AMERICA', -18, -60], ['OCEANIA', -25, 140], ['ANTARCTICA', -76, 0],
+    ]
+    regions.forEach(([label, latitude, longitude]) => window.L.marker([latitude, longitude], {
+      icon: window.L.divIcon({ className: 'continent-label-icon', html: `<span>${label}</span>`, iconSize: [120, 36], iconAnchor: [60, 18] }),
+      interactive: false,
+    }).addTo(map))
     mapRef.current = map
     return () => map.remove()
   }, [])
