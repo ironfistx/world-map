@@ -1,3 +1,4 @@
+const page = "__INLINED_PAGE__"
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json; charset=utf-8', 'access-control-allow-origin': '*' } })
 
 export default {
@@ -15,7 +16,7 @@ export default {
       await env.DB.prepare('INSERT INTO markers (id, city_name, country, lat, lng, created_at) VALUES (?, ?, ?, ?, ?, ?)').bind(id, body.name, body.country, body.lat, body.lng, createdAt).run()
       return json({ marker: { id, name: body.name, country: body.country, lat: body.lat, lng: body.lng, createdAt } }, 201)
     }
-    if (env.ASSETS) return env.ASSETS.fetch(request)
+    if (url.pathname === '/' || url.pathname === '/index.html') return new Response(page, { headers: { 'content-type': 'text/html; charset=utf-8' } })
     return new Response('Not found', { status: 404 })
   },
 }
