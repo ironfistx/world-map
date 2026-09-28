@@ -24,8 +24,8 @@ export default function App() {
 
   useEffect(() => {
     if (!mapElement.current || !window.L) return
-    const map = window.L.map(mapElement.current, { worldCopyJump: true, minZoom: 1, maxZoom: 10 }).setView([15, 0], 1)
-    window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }).addTo(map)
+    const map = window.L.map(mapElement.current, { worldCopyJump: false, zoomSnap: 0.25, minZoom: 1, maxZoom: 10 }).setView([15, 0], 1.75)
+    window.L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap contributors &copy; CARTO', maxZoom: 19 }).addTo(map)
     mapRef.current = map
     return () => map.remove()
   }, [])
