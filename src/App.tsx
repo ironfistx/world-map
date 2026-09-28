@@ -7,7 +7,7 @@ const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | u
 const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined
 const configured = Boolean(SUPABASE_URL && SUPABASE_KEY)
 const displayMode = new URLSearchParams(window.location.search).get('display') === 'true'
-const emojiChoices = ['📍', '😀', '🌏', '🌟', '❤️', '🌈', '🐼', '🐨', '🐳', '🦄', '🚀', '🎓']
+const emojiChoices = ['📍', '😀', '😎', '🥳', '🤩', '😄', '🌏', '🌍', '🌎', '🌟', '✨', '💫', '❤️', '💙', '💚', '💛', '💜', '🌈', '🔥', '🌸', '🌻', '🍀', '🍎', '🍕', '☕', '🐼', '🐨', '🐳', '🐬', '🦄', '🐝', '🦋', '🐙', '🚀', '✈️', '🚲', '🎓', '🎨', '🎵', '⚽']
 
 export default function App() {
   const mapElement = useRef<HTMLDivElement>(null)
