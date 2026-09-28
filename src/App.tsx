@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, Globe2, MapPin, Search, X } from 'lucide-react'
 import { feature } from 'topojson-client'
-import world from 'world-atlas/countries-110m.json'
+import world from 'world-atlas/countries-50m.json'
 import type { GeocodedPlace, Pin } from './types'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
