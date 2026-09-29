@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Check, Globe2, MapPin, Search, X } from 'lucide-react'
+import { Check, Globe2, MapPin, Maximize2, Minimize2, Search, X } from 'lucide-react'
 import type { GeocodedPlace, Pin } from './types'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
@@ -23,7 +23,14 @@ export default function App() {
   const [submitting, setSubmitting] = useState(false)
   const [message, setMessage] = useState('')
   const [open, setOpen] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(() => localStorage.getItem('world-map-submitted') === 'true')
+
+  useEffect(() => {
+    const syncFullscreen = () => setIsFullscreen(Boolean(document.fullscreenElement))
+    document.addEventListener('fullscreenchange', syncFullscreen)
+    return () => document.removeEventListener('fullscreenchange', syncFullscreen)
+  }, [])
 
   useEffect(() => {
     if (!mapElement.current || !window.mapboxgl || !MAPBOX_TOKEN) return
@@ -87,6 +94,13 @@ export default function App() {
 
   function chooseEmoji(value: string) { setEmoji(Array.from(value).slice(0, 4).join('') || '📍') }
 
+  async function toggleFullscreen() {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen()
+      else await document.documentElement.requestFullscreen()
+    } catch { setMessage('Fullscreen is not available in this browser.') }
+  }
+
   async function submit() {
     if (!selected || submitting || hasSubmitted) return
     setSubmitting(true); setMessage('')
@@ -101,7 +115,7 @@ export default function App() {
   }
 
   return <main className="app-shell">
-    <header className="topbar"><div className="brand"><span className="brand-mark"><Globe2 size={20} /></span><span>WHERE ARE WE?</span></div><div className="topbar-note"><span className="live-dot" /> LIVE AROUND THE WORLD</div></header>
+    <header className="topbar"><div className="brand"><span className="brand-mark"><Globe2 size={20} /></span><span>WHERE ARE WE?</span></div><div className="topbar-actions"><div className="topbar-note"><span className="live-dot" /> LIVE AROUND THE WORLD</div><button className="fullscreen-button" type="button" onClick={toggleFullscreen} aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}>{isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}</button></div></header>
     <section className="intro"><div><p className="eyebrow"><Globe2 size={14} /> A MAP OF US</p><h1>Where are we from?</h1><p className="intro-copy">Add your hometown and see where we all come together.</p></div><div className="stats"><div><strong>{pins.length.toLocaleString()}</strong><span>PEOPLE ON THE MAP</span></div><div><strong>{new Set(pins.map(pin => pin.country)).size}</strong><span>COUNTRIES / REGIONS</span></div></div></section>
     <section className="workspace"><div className="map-card"><div className="map-toolbar"><span><span className="legend-dot" /> EVERY LIGHT IS A PERSON</span></div><div ref={mapElement} className="mapbox-map" aria-label="Interactive 3D world globe" /><div className="map-footer"><span>DRAG TO ROTATE · SCROLL TO ZOOM</span><span>PINS SHOW APPROXIMATE HOMETOWNS</span></div></div>
       {!displayMode && <aside className="action-card"><div className="card-heading"><span className="step-badge">01</span><div><h2>Mark your city</h2><p>Add your hometown to the map.</p></div></div>{hasSubmitted ? <div className="already-submitted"><Check size={20} /> You're already on the map 🌏</div> : <><label className="field-label" htmlFor="name">Name or nickname <span>optional</span></label><input id="name" className="name-input" value={name} onChange={event => setName(event.target.value)} placeholder="Your name or nickname" maxLength={80} /><label className="field-label">Map icon</label><div className="emoji-picker">{emojiChoices.map(choice => <button type="button" key={choice} className={emoji === choice ? 'selected-emoji' : ''} aria-label={`Choose ${choice}`} aria-pressed={emoji === choice} onClick={() => chooseEmoji(choice)}>{choice}</button>)}</div><label className="field-label" htmlFor="emoji-input">Customized icon <span>use your phone's emoji keyboard</span></label><input id="emoji-input" className="emoji-input" value={emoji} onChange={event => chooseEmoji(event.target.value)} aria-label="Customized icon. Use your phone's emoji keyboard" placeholder="😀 Choose any emoji from your phone keyboard" maxLength={8} /><label className="field-label" htmlFor="city">Hometown</label><div className="search-wrap"><Search size={18} /><input id="city" value={query} onChange={event => { setQuery(event.target.value); setSelected(null) }} onFocus={() => setOpen(true)} placeholder="Search for a city…" autoComplete="off" />{query && <button className="clear-button" onClick={() => { setQuery(''); setSelected(null) }} aria-label="Clear search"><X size={16} /></button>}{open && query && !selected && <div className="suggestions">{searching ? <div className="no-results">Searching…</div> : places.length ? places.map(place => <button key={`${place.id}-${place.latitude}`} onClick={() => choose(place)}><MapPin size={16} /><span><b>{place.name}</b><small>{place.admin1 ? `${place.admin1}, ` : ''}{place.country}</small></span></button>) : <div className="no-results">Type at least three letters to search.</div>}</div>}</div>{selected && <div className="selected-city"><div className="selected-icon"><MapPin size={19} /></div><div><strong>{selected.name}</strong><span>{selected.country}</span></div><Check size={18} className="selected-check" /></div>}<button className="submit-button" disabled={!selected || submitting} onClick={submit}>{submitting ? 'Adding…' : 'Add me to the map'}<span>→</span></button></>}<p className="privacy-note">Only your name, city, country and icon are stored. Pins are approximate.</p>{message && <div className="toast">{message}</div>}</aside>}
