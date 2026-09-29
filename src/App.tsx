@@ -114,7 +114,7 @@ export default function App() {
     } catch { setMessage('Something went wrong. Check your Supabase configuration and try again.') } finally { setSubmitting(false) }
   }
 
-  return <main className="app-shell">
+  return <main className={`app-shell${displayMode ? ' display-mode' : ''}`}>
     <header className="topbar"><div className="brand"><span className="brand-mark"><Globe2 size={20} /></span><span>WHERE ARE WE?</span></div><div className="topbar-actions"><div className="topbar-note"><span className="live-dot" /> LIVE AROUND THE WORLD</div><button className="fullscreen-button" type="button" onClick={toggleFullscreen} aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}>{isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}</button></div></header>
     <section className="intro"><div><p className="eyebrow"><Globe2 size={14} /> A MAP OF US</p><h1>Where are we from?</h1><p className="intro-copy">Add your hometown and see where we all come together.</p></div><div className="stats"><div><strong>{pins.length.toLocaleString()}</strong><span>PEOPLE ON THE MAP</span></div><div><strong>{new Set(pins.map(pin => pin.country)).size}</strong><span>COUNTRIES / REGIONS</span></div></div></section>
     <section className="workspace"><div className="map-card"><div className="map-toolbar"><span><span className="legend-dot" /> EVERY LIGHT IS A PERSON</span></div><div ref={mapElement} className="mapbox-map" aria-label="Interactive 3D world globe" /><div className="map-footer"><span>DRAG TO ROTATE · SCROLL TO ZOOM</span><span>PINS SHOW APPROXIMATE HOMETOWNS</span></div></div>
