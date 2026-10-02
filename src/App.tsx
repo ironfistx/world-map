@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Check, Globe2, MapPin, Maximize2, Minimize2, Search, X } from 'lucide-react'
+import { Check, Globe2, MapPin, Maximize2, Minimize2, Minus, Plus, Search, X } from 'lucide-react'
 import type { GeocodedPlace, Pin } from './types'
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
@@ -115,7 +115,7 @@ export default function App() {
     } catch { setMessage('Something went wrong. Check your Supabase configuration and try again.') } finally { setSubmitting(false) }
   }
 
-  if (embedMode) return <main className="embed-mode"><div className="map-card"><div className="map-toolbar"><span><span className="legend-dot" /> EVERY LIGHT IS A PERSON</span></div><div ref={mapElement} className="mapbox-map" aria-label="Interactive 3D world globe" /></div></main>
+  if (embedMode) return <main className="embed-mode"><div className="map-card"><div className="map-toolbar"><span><span className="legend-dot" /> EVERY LIGHT IS A PERSON</span><div className="embed-zoom-controls"><button type="button" onClick={() => mapRef.current?.zoomOut()} aria-label="Zoom out" title="Zoom out"><Minus size={16} /></button><button type="button" onClick={() => mapRef.current?.zoomIn()} aria-label="Zoom in" title="Zoom in"><Plus size={16} /></button></div></div><div ref={mapElement} className="mapbox-map" aria-label="Interactive 3D world globe" /></div></main>
 
   return <main className={`app-shell${displayMode ? ' display-mode' : ''}`}>
     <header className="topbar"><div className="brand"><span className="brand-mark"><Globe2 size={20} /></span><span>WHERE ARE WE?</span></div><div className="topbar-actions"><div className="topbar-note"><span className="live-dot" /> LIVE AROUND THE WORLD</div><button className="fullscreen-button" type="button" onClick={toggleFullscreen} aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}>{isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}</button></div></header>
